@@ -22,11 +22,19 @@ $arrADUnnestedGrpSyncs = @();
 $cstAD3UnnestMngdGrp1 = New-Object PSObject -Property (@{ AD3_Unnested_Grp_GUID="c462cf19-195a-4071-8273-02277b426a17";
                                                           AD3_Unnested_Grp_Name="COE-SW-Empire";
                                                           SRC_Nested_Groups_GUIDs=@("6b0fd000-5dbd-4fe1-9d25-4d01dfcd7b35",
+                                                                                    "5f5701c5-a2dc-4848-bada-621b9f30cfca",
                                                                                     "b4961625-87fc-4aec-bc72-7201880b2e79");
                                                         });
-
 #Add Custom AD3 Managed Unnested Groups to Sync Array
 $arrADUnnestedGrpSyncs += $cstAD3UnnestMngdGrp1;
+
+<#Example of How to Add Additional Unnested Groups to Sync Array.
+$cstAD3UnnestMngdGrp2 = New-Object PSObject -Property (@{ AD3_Unnested_Grp_GUID="23e83beb-f5d6-476a-b1c7-505da5a9d0ad";
+                                                          AD3_Unnested_Grp_Name="COE-SW-Republic";
+                                                          SRC_Nested_Groups_GUIDs=@("b4961625-87fc-4aec-bc72-7201880b2e79");
+                                                        });
+$arrADUnnestedGrpSyncs += $cstAD3UnnestMngdGrp2; 
+#>
 
 #Initiate Principal Contexts for Both AD3 and OU Domains
 $prctxAD3 = New-Object DirectoryServices.AccountManagement.PrincipalContext([DirectoryServices.AccountManagement.ContextType]::Domain,"AD3","DC=AD3,DC=UCDAVIS,DC=EDU");
