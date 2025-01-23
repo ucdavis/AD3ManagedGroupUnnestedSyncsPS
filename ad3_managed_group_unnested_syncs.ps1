@@ -4,6 +4,17 @@
     Last Edit: 2025-01-22
 #>
 
+#Import Custom uInform API Module 
+Import-Module .\uInformAPI.psm1
+
+#Custom Object for UC Davis API Information
+$global:UCDAPIInfo = new-object PSObject -Property (@{ uinform_public_key=""; uinform_private_key=""; uinform_url_base="";});
+
+#Load Public and Private Keys for uInform API Access
+$UCDAPIInfo.uinform_public_key = Get-Secret -Name "uInformAPI-Pubkey" -AsPlainText -Vault UCDAccounts;
+$UCDAPIInfo.uinform_private_key = Get-Secret -Name "uInformAPI-Pvtkey" -AsPlainText -Vault UCDAccounts;
+$UCDAPIInfo.uinform_url_base = "https://ws.uinform.ucdavis.edu/";
+
 #Array of Custom AD Unnested Group Settings
 $arrADUnnestedGrpSyncs = @();
 
@@ -134,12 +145,60 @@ foreach($cstAUGS in $arrADUnnestedGrpSyncs)
 
         }#End of Membership Count Check on Unnested Group
 
+        #Determine Which Users to Remove or Add Using Source Group(s) Members
+        if($htSrcGrpMbrGUIDs.Count -gt 0)
+        {
+            #Loop Through Source Groups Members Hash Table and Check Member Status
+            foreach($dsGUID in $htSrcGrpMbrGUIDs.Keys)
+            {
+                #Don't Remove Existing Members In Data Source Listing
+                if($htMTRFG.ContainsKey($dsGUID) -eq $true)
+                {
+                    $htMTRFG.Remove($dsGUID);
+                }
+                else 
+                {
+                    #Add Them to List to Be Added to Group
+                    $htMTATG.Add($dsGUID.ToString(),"1");
+                }
+
+            }#End of Data Source Members Add or Remove Checks
+
+        }#End of $htSrcGrpMbrGUIDs Empty Check
+
+        #Null\Empty Checks on uInform API Values
+        if([string]::IsNullOrEmpty($UCDAPIInfo.uinform_public_key) -eq $false -and [string]::IsNullOrEmpty($UCDAPIInfo.uinform_public_key) -eq $false)
+        {
+            #Check for Members to Remove
+            if($htMTRFG.Count -gt 0)
+            {
+                foreach($mtrfg in $htMTRFG.Keys)
+                {
+                    #Submit Remove Member Request to uInform API
+                    Submit-uInformAPIAD3ManagedGroupMembershipChange -GroupGUID $cstAUGS.AD3_Unnested_Grp_GUID -MembershipAction "REMOVE" -MemberGUID $mtrfg.ToString();
+                
+                }#End of $htMTRFG.Keys Foreach
+
+            }#End of Members to Remove
+
+            #Check for Members to Add
+            if($htMTATG.Count -gt 0)
+            {
+                #Loop Through AD3 User GUIDs to Add to Group
+                foreach($mtatg in $htMTATG.Keys)
+                {
+                    #Submit Add Member Request to uInform API
+                    Submit-uInformAPIAD3ManagedGroupMembershipChange -GroupGUID $cstAUGS.AD3_Unnested_Grp_GUID -MembershipAction "ADD" -MemberGUID $mtatg.ToString();
+                
+                }#End of $htMTATG.Keys Foreach
+
+            }#End of Members to Add
+
+        }#End of Null\Empty Checks on uInform API Values
+        
         #Close Out Directory Entry for Unnested Group
         $deADGroupUNN.Close();
         
-        #Do Stuff Here
-
-
     }#End of Unnested Group LDAP Path Exists Check
 
 }#End of $arrADUnnestedGrpSyncs Foreach
