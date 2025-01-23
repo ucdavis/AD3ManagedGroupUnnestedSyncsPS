@@ -88,12 +88,61 @@ foreach($cstAUGS in $arrADUnnestedGrpSyncs)
 
             }#End of Membership Count Check on Sync Source Group
 
+            #Close out Directory Entry for Source Group
+            $deADGroupSSG.Close();
+
         }#End of Directory Entry Check on LDAP Path
 
     }#End of Source Nested Groups GUIDs Foreach
 
-    
-}
+    #Pull Membership of Unnested Group
+    #Var for LDAP Path of Unnested Group
+    [string]$grpLDAPPathUNN = "LDAP://ad3.ucdavis.edu/<GUID=" + $cstAUGS.AD3_Unnested_Grp_GUID + ">"; 
+
+    #Check LDAP Path of Unnested Group
+    if([DirectoryServices.DirectoryEntry]::Exists($grpLDAPPathUNN) -eq $true)
+    {
+        #Initiate Directory Entry for Unnested Group
+        $deADGroupUNN = New-Object DirectoryServices.DirectoryEntry($grpLDAPPathUNN);
+
+        #Var for Group's DN
+        [string]$grpDNUNN = $deADGroupUNN.Properties["distinguishedname"][0].ToString();
+
+        #Var for GroupPrincipal for Unnested Group
+        $grpPrincipalUNN = $null;
+
+        #Configure Group Principal Based Upon Domain of Unnested Group
+        if($grpDNUNN.ToLower().Contains("dc=ou,") -eq $true)
+        {
+            $grpPrincipalUNN = [DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($prctxOU, [DirectoryServices.AccountManagement.IdentityType]::DistinguishedName,$grpDNUNN);
+        }
+        else 
+        {
+            $grpPrincipalUNN = [DirectoryServices.AccountManagement.GroupPrincipal]::FindByIdentity($prctxAD3, [DirectoryServices.AccountManagement.IdentityType]::DistinguishedName,$grpDNUNN);
+        }
+
+        #Check Membership Count of Unnested Group
+        if($grpPrincipalUNN.Members.Count -gt 0)
+        {
+            #Pull All Unnested Membership for the Unnested Group
+            foreach($unnMbr in $grpPrincipalUNN.GetMembers($false))
+            {
+                #Load Current Members Into Remove Hash Table 
+                $htMTRFG.Add($unnMbr.Guid.ToString(),"1");
+                
+            }#End of Source Group Membership Foreach
+
+        }#End of Membership Count Check on Unnested Group
+
+        #Close Out Directory Entry for Unnested Group
+        $deADGroupUNN.Close();
+        
+        #Do Stuff Here
+
+
+    }#End of Unnested Group LDAP Path Exists Check
+
+}#End of $arrADUnnestedGrpSyncs Foreach
 
 
 
