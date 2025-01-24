@@ -1,7 +1,8 @@
 <#
     Title: ad3_managed_group_unnested_syncs.ps1
-    Authors: Ben Clark and Dean Bunn
-    Last Edit: 2025-01-22
+    Authors: Dean Bunn
+    Inspired By: Ben Clark
+    Last Edit: 2025-01-24
 #>
 
 #Import Custom uInform API Module 
@@ -21,9 +22,8 @@ $arrADUnnestedGrpSyncs = @();
 #Custom Object for AD3 Managed Unnested Group
 $cstAD3UnnestMngdGrp1 = New-Object PSObject -Property (@{ AD3_Unnested_Grp_GUID="c462cf19-195a-4071-8273-02277b426a17";
                                                           AD3_Unnested_Grp_Name="COE-SW-Empire";
-                                                          SRC_Nested_Groups_GUIDs=@("6b0fd000-5dbd-4fe1-9d25-4d01dfcd7b35",
-                                                                                    "5f5701c5-a2dc-4848-bada-621b9f30cfca",
-                                                                                    "b4961625-87fc-4aec-bc72-7201880b2e79");
+                                                          SRC_Nested_Groups_GUIDs=@("23e83beb-f5d6-476a-b1c7-505da5a9d0ad",
+                                                                                    "5f5701c5-a2dc-4848-bada-621b9f30cfca"); 
                                                         });
 #Add Custom AD3 Managed Unnested Groups to Sync Array
 $arrADUnnestedGrpSyncs += $cstAD3UnnestMngdGrp1;
